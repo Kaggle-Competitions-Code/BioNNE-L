@@ -5,14 +5,23 @@
 '''
 import argparse
 import os
+import warnings
+from collections import defaultdict
 
+import pandas as pd
 import torch
+import torch.nn.functional as F
 from datasets import load_dataset
+from tqdm import tqdm
 from transformers import AutoModel, AutoTokenizer
+
+warnings.filterwarnings("ignore")
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 DOC_DIR = "/media/f/lichunyu/BioNNE-L/data/NEREL-BIO/BioNNE-L_Shared_Task/data/texts"
+
+DATA_DIR = "/media/f/lichunyu/BioNNE-L/data/eeyore"
 
 
 def filter_vocab(vocab, lang):
@@ -29,7 +38,7 @@ def filter_vocab(vocab, lang):
 
 def get_vocab_embedding(model, tokenizer, vocab, batch_size, max_length):
     vocab_embedding = []
-    for i in range(0, len(vocab), batch_size):
+    for i in tqdm(range(0, len(vocab), batch_size)):
         batch = vocab[i:i + batch_size]
         inputs = tokenizer(batch, padding="max_length", max_length=max_length, truncation=True, return_tensors="pt")
         inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
@@ -116,6 +125,38 @@ def get_span(start_idx, end_idx, num_prefix_words, num_suffix_words, doc_id, doc
     return span
 
 
+def retrieval_vocab(text: str,
+                    entity_id: list,
+                    entity_vocab: list,
+                    vocab_embedding: list,
+                    model,
+                    tokenizer,
+                    max_length,
+                    batch_size,
+                    k=10):
+    inputs = tokenizer(text, padding="max_length", max_length=max_length, truncation=True, return_tensors="pt")
+    inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
+    with torch.no_grad():
+        text_embedding = model(**inputs).last_hidden_state[:, 0]
+
+    indices = None
+    score = None
+
+    for i in range(0, len(vocab_embedding), batch_size):
+        batch = vocab_embedding[i:i + batch_size]
+        batch = torch.tensor(batch).to(DEVICE)
+        similarity = F.cosine_similarity(text_embedding, batch)
+        values, ids = torch.topk(similarity, k=k)
+        score = torch.concatenate((score, values), dim=0) if score is not None else values
+        indices = torch.concatenate((indices, ids), dim=0) if indices is not None else ids
+        score, ids = torch.topk(score, k=k)
+        indices = indices[ids]
+    indices = indices.cpu().numpy().tolist()
+    labels = [entity_id[i] for i in indices]
+    candidate_entity = [entity_vocab[i] for i in indices]
+    return labels, candidate_entity
+
+
 def main(args):
     num_prefix_words = args.num_prefix_words
     num_suffix_words = args.num_suffix_words
@@ -129,33 +170,44 @@ def main(args):
     max_length = args.max_length
 
     # Load the tokenizer
-    # model = AutoModel.from_pretrained(model_name_or_path).to(DEVICE)
-    # model.eval()
-    # tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
+    model = AutoModel.from_pretrained(model_name_or_path).to(DEVICE)
+    model.eval()
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path)
 
     # Load the dataset
 
-    # vocab = load_dataset("andorei/BioNNE-L", "Vocabulary", split="train")
-    # vocab = vocab.to_pandas()
-    # vocab = filter_vocab(vocab, lang)
-    # entity_vocab = vocab["concept_name"].to_list()
-    # entity_id = vocab["CUI"].to_list()
+    vocab = load_dataset("andorei/BioNNE-L", "Vocabulary", split="train")
+    vocab = vocab.to_pandas()
+    vocab = filter_vocab(vocab, lang)
+    entity_vocab = vocab["concept_name"].to_list()
+    entity_id = vocab["CUI"].to_list()
 
-    # vacab_embedding = get_vocab_embedding(model, tokenizer, entity_vocab, vocab_embedding_batch_size, max_length)
+    vacab_embedding = get_vocab_embedding(model, tokenizer, entity_vocab, vocab_embedding_batch_size, max_length)
 
     doc_dir = os.path.join(DOC_DIR, lang, dataset_split)
 
     en_data_train = load_dataset(dataset_path, dataset_name, split=dataset_split)
     en_data_train = en_data_train.to_pandas()
-    for idx, row in en_data_train.iterrows():
+
+    train_data = defaultdict(list)
+
+    for idx, row in tqdm(en_data_train.iterrows(), total=len(en_data_train)):
         doc_id = row["document_id"]
         text = row["text"]
         spans = row["spans"]
         start_idx, end_idx = spans.split("-")[0], spans.split("-")[-1]
         CUI = row["UMLS_CUI"]
         span4train = get_span(start_idx, end_idx, num_prefix_words, num_suffix_words, doc_id, doc_dir, text)
-        ...
-    ...
+        candidate_ids, candidate_entities = retrieval_vocab(text, entity_id, entity_vocab, vacab_embedding, model,
+                                                            tokenizer, max_length, vocab_embedding_batch_size)
+        labels = [1 if i == CUI else 0 for i in candidate_ids]
+        train_data["mention"].append(text)
+        train_data["text"].append(span4train)
+        train_data["candidates"].append(candidate_entities)
+        train_data["labels"].append(labels)
+    train_data = pd.DataFrame(train_data)
+    train_data.to_pickle(os.path.join(DATA_DIR, args.save_file_name))
+    print(f"Train data shape: {train_data.shape}")
 
 
 if __name__ == '__main__':
@@ -171,7 +223,8 @@ if __name__ == '__main__':
     parser.add_argument("--dataset_name", type=str, default="English", help="")
     parser.add_argument("--dataset_split", type=str, default="train", help="")
     parser.add_argument("--lang", type=str, default="en", help="")
-    parser.add_argument("--vocab_embedding_batch_size", type=int, default=640, help="")
+    parser.add_argument("--vocab_embedding_batch_size", type=int, default=2400, help="")
     parser.add_argument("--max_length", type=int, default=48, help="")
+    parser.add_argument("--save_file_name", type=str, default="train_data.pkl", help="")
     args = parser.parse_args()
     main(args)
