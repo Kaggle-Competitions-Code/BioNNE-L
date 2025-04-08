@@ -179,16 +179,16 @@ def batch_retrieval_vocab(batch_text: list,
         batch = torch.tensor(batch).to(DEVICE)
         similarity = F.cosine_similarity(text_embedding.unsqueeze(1), batch.unsqueeze(0), dim=-1)
         values, ids = torch.topk(similarity, k=k)
+        ids += i
         score = torch.concatenate((score, values), dim=1) if score is not None else values
         indices = torch.concatenate((indices, ids), dim=1) if indices is not None else ids
         score, ids = torch.topk(score, k=k)
         indices = indices[torch.arange(ids.shape[0]).unsqueeze(1), ids]
 
     indices = indices.cpu().numpy().tolist()
-    labels = [[entity_id[i] for i in index] for index in indices]
+    candidate_ids = [[entity_id[i] for i in index] for index in indices]
     candidate_entities = [[entity_vocab[i] for i in index] for index in indices]
-    return labels, candidate_entities
-    ...
+    return candidate_ids, candidate_entities
 
 
 def main(args):
@@ -249,13 +249,15 @@ def main(args):
         train_data["mention"].extend(batch_texts)
         train_data["text"].extend(batch_span4train)
         train_data["candidates"].extend(candidate_entities)
+        train_data["CUI"].extend(batch_CUIs)
+        train_data["candidate_CUI"].extend(candidate_ids)
         for j in range(len(batch_CUIs)):
-            labels = [1 if i == batch_CUIs[j] else 0 for i in candidate_ids[j]]
+            labels = [1 if k == batch_CUIs[j] else 0 for k in candidate_ids[j]]
             train_data["labels"].append(labels)
 
     train_data = pd.DataFrame(train_data)
     train_data.to_pickle(os.path.join(DATA_DIR, args.save_file_name))
-    print(f"Train data shape: {train_data.shape}")
+    print(f"Saved data shape: {train_data.shape}")
 
 
 if __name__ == '__main__':

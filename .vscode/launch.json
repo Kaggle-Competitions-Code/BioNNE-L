@@ -11,12 +11,6 @@
             "request": "launch",
             "program": "${file}",
             "console": "internalConsole",
-            "args": [
-                "--num_prefix_words",
-                "5",
-                "--num_suffix_words",
-                "5",
-            ]
         }
     ]
 }
