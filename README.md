@@ -12,6 +12,15 @@
 
 ## Step2: Rank
 
-|     Model      |      Approach       |  Acc  |
-| :------------: | :-----------------: | :---: |
-| gebert_eng_gat | Classification-only |       |
+## retrieval data
+train: Acc: 0.3747, Acc@2: 0.5067, Acc@5: 0.6952, Acc@10: 0.8059
+dev: Acc: 0.5285, Acc@2: 0.6784, Acc@5: 0.7658, Acc@10: 0.8011
+
+
+|                   Model                    |      Approach       |  Acc   |
+| :----------------------------------------: | :-----------------: | :----: |
+|               gebert_eng_gat               | Classification-only |        |
+|              BioLinkBERT-base              |                     | 0.5441 |
+|             BioLinkBERT-large              |                     | 0.5269 |
+| BiomedNLP-BiomedBERT-base-uncased-abstract |                     | 0.5441 |
+|             bart-base-uncased              |                     | 0.5253 |
