@@ -6,8 +6,11 @@
 import pandas as pd
 from datasets import load_dataset
 
-dataset = load_dataset("adlbh/umls-concepts", split="train")
-umls = dataset.to_pandas()
+# dataset = load_dataset("adlbh/umls-concepts", split="train")
+# umls = dataset.to_pandas()
+
+en_data_train = load_dataset("andorei/BioNNE-L", "English", split="train")
+en_data_train = en_data_train.to_pandas()
 
 df = pd.read_pickle("/media/f/lichunyu/BioNNE-L/data/eeyore/dev_data.pkl")
 ...

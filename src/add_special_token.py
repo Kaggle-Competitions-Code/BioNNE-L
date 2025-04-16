@@ -11,7 +11,7 @@ from transformers import AutoModel, AutoTokenizer
 
 def add_special_token(args):
     path = args.model_name_or_path
-    special_tokens = ["[ST0]", "[ST1]", "[ST2]", "[ST3]", "[ST4]", "[ST5]", "[ST6]", "[ST7]", "[ST8]", "[ST9]"]
+    special_tokens = ["[Ms]", "[Me]"]
 
     tokenizer = AutoTokenizer.from_pretrained(path)
     model = AutoModel.from_pretrained(path)
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name_or_path",
                         type=str,
-                        default="/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract",
+                        default="/media/f/lichunyu/models/gebert_eng_gat",
                         help="Path to the pretrained model")
     args = parser.parse_args()
     add_special_token(args)

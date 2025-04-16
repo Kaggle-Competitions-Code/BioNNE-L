@@ -42,7 +42,7 @@ if __name__ == "__main__":
     parser.add_argument("--step", type=int, default=1, help="Step number")
     parser.add_argument("--data_path",
                         type=str,
-                        default="/media/f/lichunyu/BioNNE-L/data/eeyore/dev_data.pkl",
+                        default="/media/f/lichunyu/BioNNE-L/data/eeyore/dev_data_sap_50.pkl",
                         help="Path to the test data")
     args = parser.parse_args()
     main(args)

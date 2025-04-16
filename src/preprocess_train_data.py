@@ -37,6 +37,7 @@ def filter_vocab(vocab, lang):
 
 
 def get_vocab_embedding(model, tokenizer, vocab, batch_size, max_length):
+    model.eval()
     vocab_embedding = []
     for i in tqdm(range(0, len(vocab), batch_size)):
         batch = vocab[i:i + batch_size]
@@ -120,8 +121,8 @@ def get_span(start_idx, end_idx, num_prefix_words, num_suffix_words, doc_id, doc
         end = min(end + num_suffix_words, len(words) - 1)
         span = " ".join(words[start:end + 1])
 
-    print(f"Mention: {mention}")
-    print(f"Span: {span}")
+    # print(f"Mention: {mention}")
+    # print(f"Span: {span}")
     return span
 
 
@@ -166,10 +167,11 @@ def batch_retrieval_vocab(batch_text: list,
                           max_length,
                           voacb_batch_size,
                           k=10):
+    model.eval()
     inputs = tokenizer(batch_text, padding="max_length", max_length=max_length, truncation=True, return_tensors="pt")
     inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
     with torch.no_grad():
-        text_embedding = model(**inputs).last_hidden_state[:, 0]
+        text_embedding = model(**inputs).last_hidden_state[:, 0].detach().clone()
 
     indices = None
     score = None
@@ -214,46 +216,53 @@ def main(args):
     vocab = load_dataset("andorei/BioNNE-L", "Vocabulary", split="train")
     vocab = vocab.to_pandas()
     vocab = filter_vocab(vocab, lang)
-    entity_vocab = vocab["concept_name"].to_list()
-    entity_id = vocab["CUI"].to_list()
-
-    vacab_embedding = get_vocab_embedding(model, tokenizer, entity_vocab, vocab_embedding_batch_size, max_length)
-
-    doc_dir = os.path.join(DOC_DIR, lang, dataset_split)
 
     en_data_train = load_dataset(dataset_path, dataset_name, split=dataset_split)
     en_data_train = en_data_train.to_pandas()
 
     train_data = defaultdict(list)
 
-    # process train data
+    for chem_type in ("DISO", "CHEM", "ANATOMY"):
+        sub_en_data_train = en_data_train[en_data_train["entity_type"] == chem_type]
+        sub_vocab = vocab[vocab["semantic_type"] == chem_type]
 
-    doc_ids = en_data_train["document_id"].to_list()
-    texts = en_data_train["text"].to_list()
-    spans = en_data_train["spans"].to_list()
-    CUIs = en_data_train["UMLS_CUI"].to_list()
-    for i in tqdm(range(0, len(doc_ids), retrieval_batch_size)):
-        batch_doc_ids = doc_ids[i:i + retrieval_batch_size]
-        batch_texts = texts[i:i + retrieval_batch_size]
-        batch_spans = spans[i:i + retrieval_batch_size]
-        batch_CUIs = CUIs[i:i + retrieval_batch_size]
-        batch_span4train = []
-        for j in range(len(batch_doc_ids)):
-            start_idx, end_idx = batch_spans[j].split("-")[0], batch_spans[j].split("-")[-1]
-            batch_span4train.append(
-                get_span(start_idx, end_idx, num_prefix_words, num_suffix_words, batch_doc_ids[j], doc_dir,
-                         batch_texts[j]))
-        candidate_ids, candidate_entities = batch_retrieval_vocab(batch_texts, entity_id, entity_vocab,
-                                                                  vacab_embedding, model, tokenizer, max_length,
-                                                                  vocab_embedding_batch_size)
-        train_data["mention"].extend(batch_texts)
-        train_data["text"].extend(batch_span4train)
-        train_data["candidates"].extend(candidate_entities)
-        train_data["CUI"].extend(batch_CUIs)
-        train_data["candidate_CUI"].extend(candidate_ids)
-        for j in range(len(batch_CUIs)):
-            labels = [1 if k == batch_CUIs[j] else 0 for k in candidate_ids[j]]
-            train_data["labels"].append(labels)
+        entity_vocab = sub_vocab["concept_name"].to_list()
+        entity_id = sub_vocab["CUI"].to_list()
+
+        vacab_embedding = get_vocab_embedding(model, tokenizer, entity_vocab, vocab_embedding_batch_size, max_length)
+
+        doc_dir = os.path.join(DOC_DIR, lang, dataset_split)
+
+        # process train data
+
+        doc_ids = sub_en_data_train["document_id"].to_list()
+        texts = sub_en_data_train["text"].to_list()
+        spans = sub_en_data_train["spans"].to_list()
+        CUIs = sub_en_data_train["UMLS_CUI"].to_list()
+        for i in tqdm(range(0, len(doc_ids), retrieval_batch_size)):
+            batch_doc_ids = doc_ids[i:i + retrieval_batch_size]
+            batch_texts = texts[i:i + retrieval_batch_size]
+            batch_spans = spans[i:i + retrieval_batch_size]
+            batch_CUIs = CUIs[i:i + retrieval_batch_size]
+            batch_span4train = []
+            for j in range(len(batch_doc_ids)):
+                start_idx, end_idx = batch_spans[j].split("-")[0], batch_spans[j].split("-")[-1]
+                batch_span4train.append(
+                    get_span(start_idx, end_idx, num_prefix_words, num_suffix_words, batch_doc_ids[j], doc_dir,
+                             batch_texts[j]))
+            candidate_ids, candidate_entities = batch_retrieval_vocab(batch_texts, entity_id, entity_vocab,
+                                                                      vacab_embedding, model, tokenizer, max_length,
+                                                                      vocab_embedding_batch_size)
+            train_data["doc_id"].extend(batch_doc_ids)
+            train_data["spans"].extend(batch_spans)
+            train_data["mention"].extend(batch_texts)
+            train_data["text"].extend(batch_span4train)
+            train_data["candidates"].extend(candidate_entities)
+            train_data["CUI"].extend(batch_CUIs)
+            train_data["candidate_CUI"].extend(candidate_ids)
+            for j in range(len(batch_CUIs)):
+                labels = [1 if k == batch_CUIs[j] else 0 for k in candidate_ids[j]]
+                train_data["labels"].append(labels)
 
     train_data = pd.DataFrame(train_data)
     train_data.to_pickle(os.path.join(DATA_DIR, args.save_file_name))
@@ -273,9 +282,9 @@ if __name__ == '__main__':
     parser.add_argument("--dataset_name", type=str, default="English", help="")
     parser.add_argument("--dataset_split", type=str, default="train", help="")
     parser.add_argument("--lang", type=str, default="en", help="")
-    parser.add_argument("--vocab_embedding_batch_size", type=int, default=1280, help="")
+    parser.add_argument("--vocab_embedding_batch_size", type=int, default=800, help="")
     parser.add_argument("--retrieval_batch_size", type=int, default=128, help="")
-    parser.add_argument("--max_length", type=int, default=48, help="")
+    parser.add_argument("--max_length", type=int, default=32, help="")
     parser.add_argument("--save_file_name", type=str, default="train_data.pkl", help="")
     args = parser.parse_args()
     main(args)
