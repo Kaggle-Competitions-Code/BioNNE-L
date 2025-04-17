@@ -4,12 +4,32 @@
 
 ### English
 
-|              Model               | Acc@1  | Acc@5  | Acc@10 |
-| :------------------------------: | :----: | :----: | :----: |
-|          gebert_eng_gat          | 0.566  | 0.799  | 0.834  |
-|        BioLinkBERT-large         | 0.427  | 0.603  |   \    |
-|         BioLinkBERT-base         | 0.472  | 0.653  | 0.671  |
-| SapBERT-from-PubMedBERT-fulltext | 0.6115 | 0.7698 | 0.8043 |
+#### Dev
+
+|                    Model                    | Acc@1  | Acc@5  | Acc@10 |
+| :-----------------------------------------: | :----: | :----: | :----: |
+|               gebert_eng_gat                | 0.5898 | 0.7654 | 0.7979 |
+|              BioLinkBERT-large              | 0.427  | 0.603  |   \    |
+|              BioLinkBERT-base               | 0.472  | 0.653  | 0.671  |
+|      SapBERT-from-PubMedBERT-fulltext       | 0.6115 | 0.7698 | 0.8043 |
+| SapBERT-from-PubMedBERT-fulltext-mean-token | 0.6038 | 0.7723 | 0.8184 |
+
+
+#### Train
+|                    Model                    | Acc@1  | Acc@5  | Acc@10 |
+| :-----------------------------------------: | :----: | :----: | :----: |
+|               gebert_eng_gat                | 0.3732 | 0.6494 | 0.7431 |
+|      SapBERT-from-PubMedBERT-fulltext       | 0.3595 | 0.6509 | 0.7513 |
+| SapBERT-from-PubMedBERT-fulltext-mean-token | 0.3587 | 0.6349 | 0.7253 |
+
+
+### Russian
+
+#### Dev
+|                    Model                     | Acc@1  | Acc@5  | Acc@10 |
+| :------------------------------------------: | :----: | :----: | :----: |
+|    SapBERT-UMLS-2020AB-all-lang-from-XLMR    | 0.4914 | 0.5497 | 0.5686 |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large | 0.5103 | 0.5613 | 0.5763 |
 
 
 
@@ -25,3 +45,11 @@
 |     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.5441 |    0.5285/0.7658/0.8011     | Multilabel |
 |                  bart-base-uncased                  | 0.5253 |    0.5285/0.7658/0.8011     | Multilabel |
 | BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext |   \    |                             | regression |
+
+
+
+# Extra Dataset
+|        dataset         | Performance |
+| :--------------------: | :---------: |
+| nerel-ds/NEREL(github) |      \      |
+|                        |             |

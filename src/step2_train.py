@@ -12,8 +12,9 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from datasets import load_dataset
-from torch.nn import BCEWithLogitsLoss, MSELoss
+from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 from torch.utils.tensorboard import SummaryWriter
@@ -33,7 +34,7 @@ class ELModel(nn.Module):
         super(ELModel, self).__init__()
         self.bert = AutoModel.from_pretrained(model_name_or_path)
         self.dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(self.bert.config.hidden_size, 1)
+        self.classifier = nn.Linear(self.bert.config.hidden_size, 2)
 
     def forward(self, input_ids, attention_mask, token_type_ids, labels=None, type_labels=None):
         outputs = self.bert(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
@@ -44,8 +45,10 @@ class ELModel(nn.Module):
         if labels is not None:
             # loss_fct = BCEWithLogitsLoss()
             # loss = loss_fct(logits, labels)
-            loss_fct = MSELoss()
-            loss = loss_fct(logits.squeeze(), labels.squeeze())
+            # loss_fct = MSELoss()
+            # loss = loss_fct(logits.squeeze(), labels.squeeze())
+            loss_fct = CrossEntropyLoss()
+            loss = loss_fct(logits.view(-1, 2), labels.view(-1))
         if type_labels is not None:
             raise NotImplementedError()
         return {"logits": logits, "loss": loss}
@@ -109,7 +112,7 @@ class ELCollator:
         input_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in input_ids], batch_first=True)
         attention_mask = pad_sequence([torch.tensor(i, dtype=torch.int) for i in attention_mask], batch_first=True)
         token_type_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in token_type_ids], batch_first=True)
-        labels = torch.tensor(labels, dtype=torch.float)
+        labels = torch.tensor(labels)
         return {
             "input_ids": input_ids,
             "attention_mask": attention_mask,
@@ -181,8 +184,10 @@ def main(args):
                 outputs = model(**batch)
                 loss = outputs["loss"]
                 writer.add_scalar("dev/loss", loss.item(), epoch * len(dev_dataloader) + step)
-                logits = outputs["logits"].view(-1, args.retrieval_topk).detach().cpu().numpy()
-                pred = np.argmax(logits, axis=-1)
+                logits = outputs["logits"].detach().clone()
+                pred = F.softmax(outputs["logits"])[:, 1].view(-1, args.retrieval_topk).detach().cpu().numpy()
+                # logits = outputs["logits"].view(-1, args.retrieval_topk).detach().cpu().numpy()
+                pred = np.argmax(pred, axis=-1)
                 labels = batch["labels"].view(-1, args.retrieval_topk).detach().cpu().numpy()
                 for idx, i in enumerate(pred):
                     if labels[idx][i] == 1:
@@ -196,26 +201,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--train_data_path",
                         type=str,
-                        default="/media/f/lichunyu/BioNNE-L/data/eeyore/train_data_sap_50.pkl",
+                        default="/media/f/lichunyu/BioNNE-L/data/eeyore/en/train_data_sap_50.pkl",
                         help="Path to the training data")
     parser.add_argument("--dev_data_path",
                         type=str,
-                        default="/media/f/lichunyu/BioNNE-L/data/eeyore/dev_data_sap_50.pkl",
+                        default="/media/f/lichunyu/BioNNE-L/data/eeyore/en/dev_data_sap_50.pkl",
                         help="Path to the dev data")
     parser.add_argument("--model_name_or_path",
                         type=str,
-                        default="/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-special",
+                        default="/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext-special",
                         help="Path to the pretrained model")
     parser.add_argument("--tokenizer_name_or_path",
                         type=str,
-                        default="/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-special",
+                        default="/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext-special",
                         help="Path to the pretrained tokenizer")
     parser.add_argument("--max_length", type=int, default=500, help="Maximum length of the input sequences")
     parser.add_argument("--train_batch_size", type=int, default=16, help="Batch size for training")
     parser.add_argument("--eval_batch_size", type=int, default=16, help="Batch size for evaluation")
     parser.add_argument("--retrieval_topk", type=int, default=5, help="Top k retrieval results")
     parser.add_argument("--learning_rate", type=float, default=7e-6, help="Learning rate for the optimizer")
-    parser.add_argument("--num_train_epochs", type=int, default=15, help="Number of training epochs")
+    parser.add_argument("--num_train_epochs", type=int, default=10, help="Number of training epochs")
     parser.add_argument("--log_dir",
                         type=str,
                         default="/media/f/lichunyu/BioNNE-L/data/runs",

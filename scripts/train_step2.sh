@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd ../src
+python step2_train.py \
+--model_name_or_path=/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-special \
+--tokenizer_name_or_path=/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-special
