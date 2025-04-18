@@ -237,6 +237,7 @@ def main(args):
             en_data_train = pd.concat([en_data_train, ru_data_train], axis=0)
 
     train_data = defaultdict(list)
+    num_find_span4mention_error = 0
 
     for chem_type in ("DISO", "CHEM", "ANATOMY"):
         sub_en_data_train = en_data_train[en_data_train["entity_type"] == chem_type]
@@ -263,9 +264,13 @@ def main(args):
             batch_span4train = []
             for j in range(len(batch_doc_ids)):
                 start_idx, end_idx = batch_spans[j].split("-")[0], batch_spans[j].split("-")[-1]
-                batch_span4train.append(
-                    get_span(start_idx, end_idx, num_prefix_words, num_suffix_words, batch_doc_ids[j], dataset_split,
-                             batch_texts[j], args))
+                try:
+                    span_include_mention = get_span(start_idx, end_idx, num_prefix_words, num_suffix_words,
+                                                    batch_doc_ids[j], dataset_split, batch_texts[j], args)
+                except Exception as e:
+                    num_find_span4mention_error += 1
+                    span_include_mention = batch_texts[j]
+                batch_span4train.append(span_include_mention)
             candidate_ids, candidate_entities = batch_retrieval_vocab(batch_texts, entity_id, entity_vocab,
                                                                       vacab_embedding, model, tokenizer, max_length,
                                                                       vocab_embedding_batch_size)
@@ -282,6 +287,7 @@ def main(args):
 
     train_data = pd.DataFrame(train_data)
     train_data.to_pickle(os.path.join(DATA_DIR, args.lang, args.save_file_name))
+    print(f"Number of errors in finding span4mention: {num_find_span4mention_error}")
     print(f"Saved data shape: {train_data.shape}")
     print(f"Saved data path: {os.path.join(DATA_DIR, args.lang, args.save_file_name)}")
 
