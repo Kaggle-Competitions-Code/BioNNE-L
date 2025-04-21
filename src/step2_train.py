@@ -5,6 +5,7 @@
 '''
 import argparse
 import os
+import random
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -134,7 +135,20 @@ def get_umls():
     return umls_map
 
 
+def set_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
 def main(args):
+    set_seed(args.seed)
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name_or_path)
@@ -165,7 +179,7 @@ def main(args):
 
     for epoch in tqdm(range(args.num_train_epochs)):
         model.train()
-        for step, batch in tqdm(enumerate(train_dataloader)):
+        for step, batch in tqdm(enumerate(train_dataloader), total=len(train_dataloader)):
             batch = {k: v.to(device) for k, v in batch.items()}
             outputs = model(**batch)
             loss = outputs["loss"]
@@ -178,14 +192,14 @@ def main(args):
         # Evaluation
         model.eval()
         num_all, num_correct = 0, 0
-        for step, batch in tqdm(enumerate(dev_dataloader)):
+        for step, batch in tqdm(enumerate(dev_dataloader), total=len(dev_dataloader)):
             batch = {k: v.to(device) for k, v in batch.items()}
             with torch.no_grad():
                 outputs = model(**batch)
                 loss = outputs["loss"]
                 writer.add_scalar("dev/loss", loss.item(), epoch * len(dev_dataloader) + step)
                 logits = outputs["logits"].detach().clone()
-                pred = F.softmax(outputs["logits"])[:, 1].view(-1, args.retrieval_topk).detach().cpu().numpy()
+                pred = F.softmax(logits)[:, 1].view(-1, args.retrieval_topk).detach().cpu().numpy()
                 # logits = outputs["logits"].view(-1, args.retrieval_topk).detach().cpu().numpy()
                 pred = np.argmax(pred, axis=-1)
                 labels = batch["labels"].view(-1, args.retrieval_topk).detach().cpu().numpy()
@@ -195,6 +209,10 @@ def main(args):
                     num_all += 1
         acc = num_correct / num_all
         writer.add_scalar("dev/acc", acc, epoch)
+        torch.save(
+            model.state_dict(),
+            f"{os.path.join(args.save_dir, os.path.basename(args.model_name_or_path))}_epoch_{epoch}_acc_{acc:.4f}.bin"
+        )
 
 
 if __name__ == '__main__':
@@ -225,5 +243,10 @@ if __name__ == '__main__':
                         type=str,
                         default="/media/f/lichunyu/BioNNE-L/data/runs",
                         help="Directory to save logs and checkpoints")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for initialization")
+    parser.add_argument("--save_dir",
+                        type=str,
+                        default="/media/f/lichunyu/BioNNE-L/data/checkpoints",
+                        help="Directory to save checkpoints")
     args = parser.parse_args()
     main(args)

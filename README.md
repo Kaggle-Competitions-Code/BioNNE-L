@@ -35,16 +35,21 @@
 
 ## Step2: Rank
 
+### English
+
 ## retrieval data
 
-|                        Model                        |  Acc   | Base on(Acc@1/Acc@5/Acc@10) |  Approach  |
-| :-------------------------------------------------: | :----: | :-------------------------: | :--------: |
-|                   gebert_eng_gat                    |        |                             |            |
-|                  BioLinkBERT-base                   | 0.5441 |    0.5285/0.7658/0.8011     | Multilabel |
-|                  BioLinkBERT-large                  | 0.5269 |    0.5285/0.7658/0.8011     | Multilabel |
-|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.5441 |    0.5285/0.7658/0.8011     | Multilabel |
-|                  bart-base-uncased                  | 0.5253 |    0.5285/0.7658/0.8011     | Multilabel |
-| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext |   \    |                             | regression |
+|                        Model                        |  Acc   | Base on(Acc@1/Acc@5/Acc@10) |     Approach     |              P.S.               |
+| :-------------------------------------------------: | :----: | :-------------------------: | :--------------: | :-----------------------------: |
+|                   gebert_eng_gat                    |   \    |              \              |    Multilabel    |                \                |
+|                  BioLinkBERT-base                   | 0.5441 |    0.5285/0.7658/0.8011     |    Multilabel    |                \                |
+|                  BioLinkBERT-large                  | 0.5269 |    0.5285/0.7658/0.8011     |    Multilabel    |                \                |
+|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.5441 |    0.5285/0.7658/0.8011     |    Multilabel    |                \                |
+|                  bart-base-uncased                  | 0.5253 |    0.5285/0.7658/0.8011     |    Multilabel    |                \                |
+| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext |   \    |              \              |    regression    |                \                |
+| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext | 0.6536 |    0.6115/0.7698/0.8043     | 2-Classification | data: NEREL, retrieval_topk: 5  |
+|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.6604 |    0.6115/0.7698/0.8043     | 2-Classification | data: NEREL, retrieval_topk: 5  |
+| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext | 0.6532 |    0.6115/0.7698/0.8043     | 2-Classification | data: NEREL, retrieval_topk: 10 |
 
 
 

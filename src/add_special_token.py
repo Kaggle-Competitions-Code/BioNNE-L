@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name_or_path",
                         type=str,
-                        default="/media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext",
+                        default="/media/f/lichunyu/models/BiomedNLP-KRISSBERT-PubMed-UMLS-EL",
                         help="Path to the pretrained model")
     args = parser.parse_args()
     add_special_token(args)
