@@ -25,7 +25,7 @@ def compute_metirc(df, dataset):
 
 def main(args):
     df = pd.read_pickle(os.path.join(DATA_DIR, args.lang, args.data_path))
-    dataset = load_dataset("andorei/BioNNE-L", "Russian", split="dev")
+    # dataset = load_dataset("andorei/BioNNE-L", "Russian", split="dev")
     df = df[["doc_id", "spans", "candidate_CUI"]].rename(columns={
         "doc_id": "document_id",
         "candidate_CUI": "prediction"
@@ -40,7 +40,7 @@ def main(args):
 
     df["prediction"] = df["prediction"].apply(prediction_func)
     df = df.explode("prediction")
-    compute_metirc(df, dataset)
+    # compute_metirc(df, dataset)
     df = df.reset_index(drop=False)
     df['rank'] = df.groupby('index').cumcount()
     df = df[["document_id", "spans", "rank", "prediction"]]
@@ -51,8 +51,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_path", type=str, default="dev_data_sap_50.pkl", help="Path to the test data")
+    parser.add_argument("--data_path", type=str, default="test_data_sap_50.pkl", help="Path to the test data")
     parser.add_argument("--lang", type=str, default="bilingual", help="")
-    parser.add_argument("--save_file_name", type=str, default="bilingual_predictions.tsv", help="")
+    parser.add_argument("--save_file_name", type=str, default="test_bilingual_predictions.tsv", help="")
     args = parser.parse_args()
     main(args)

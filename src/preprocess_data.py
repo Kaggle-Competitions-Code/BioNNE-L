@@ -218,7 +218,10 @@ def main(args):
 
     # Load the dataset
 
-    vocab = load_dataset("andorei/BioNNE-L", "Vocabulary", split="train")
+    vocab = load_dataset("andorei/BioNNE-L",
+                         "Vocabulary",
+                         split="train",
+                         download_mode="force_redownload" if args.force is True else None)
     vocab = vocab.to_pandas()
     if lang in ["en", "ru"]:
         vocab = filter_vocab(vocab, lang)
@@ -226,13 +229,22 @@ def main(args):
     if args.dataset_pickle_path:
         en_data_train = pd.read_pickle(args.dataset_pickle_path)
     else:
-        en_data_train = load_dataset(dataset_path, dataset_name, split=dataset_split)
+        en_data_train = load_dataset(dataset_path,
+                                     dataset_name,
+                                     split=dataset_split,
+                                     download_mode="force_redownload" if args.force is True else None)
         en_data_train = en_data_train.to_pandas()
         if lang not in ["en", "ru"]:
             if dataset_name == "English":
-                ru_data_train = load_dataset(dataset_path, "Russian", split=dataset_split)
+                ru_data_train = load_dataset(dataset_path,
+                                             "Russian",
+                                             split=dataset_split,
+                                             download_mode="force_redownload" if args.force is True else None)
             else:
-                ru_data_train = load_dataset(dataset_path, "English", split=dataset_split)
+                ru_data_train = load_dataset(dataset_path,
+                                             "English",
+                                             split=dataset_split,
+                                             download_mode="force_redownload" if args.force is True else None)
             ru_data_train = ru_data_train.to_pandas()
             en_data_train = pd.concat([en_data_train, ru_data_train], axis=0)
 
@@ -314,5 +326,6 @@ if __name__ == '__main__':
     parser.add_argument("--retrieval_batch_size", type=int, default=128, help="")
     parser.add_argument("--max_length", type=int, default=32, help="")
     parser.add_argument("--save_file_name", type=str, default="train_data.pkl", help="")
+    parser.add_argument("--force", type=bool, default=False, help="")
     args = parser.parse_args()
     main(args)

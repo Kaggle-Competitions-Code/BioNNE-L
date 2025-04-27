@@ -37,7 +37,7 @@ class ELModel(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.classifier = nn.Linear(self.bert.config.hidden_size, 2)
 
-    def forward(self, input_ids, attention_mask, token_type_ids, labels=None, type_labels=None):
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, type_labels=None):
         outputs = self.bert(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
         pooled_output = outputs[1]
         pooled_output = self.dropout(pooled_output)
@@ -112,14 +112,17 @@ class ELCollator:
             labels.extend(inputs[i]["label"])
         input_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in input_ids], batch_first=True)
         attention_mask = pad_sequence([torch.tensor(i, dtype=torch.int) for i in attention_mask], batch_first=True)
-        token_type_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in token_type_ids], batch_first=True)
         labels = torch.tensor(labels)
-        return {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "token_type_ids": token_type_ids,
-            "labels": labels
-        }
+        if inputs[0]["token_type_ids"]:
+            token_type_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in token_type_ids], batch_first=True)
+            return {
+                "input_ids": input_ids,
+                "attention_mask": attention_mask,
+                "token_type_ids": token_type_ids,
+                "labels": labels
+            }
+        else:
+            return {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
 
 
 def compute_metrics(labels, logits):
@@ -189,30 +192,35 @@ def main(args):
             optimizer.zero_grad()
             writer.add_scalar("train/loss", loss.item(), epoch * len(train_dataloader) + step)
 
-        # Evaluation
-        model.eval()
-        num_all, num_correct = 0, 0
-        for step, batch in tqdm(enumerate(dev_dataloader), total=len(dev_dataloader)):
-            batch = {k: v.to(device) for k, v in batch.items()}
-            with torch.no_grad():
-                outputs = model(**batch)
-                loss = outputs["loss"]
-                writer.add_scalar("dev/loss", loss.item(), epoch * len(dev_dataloader) + step)
-                logits = outputs["logits"].detach().clone()
-                pred = F.softmax(logits)[:, 1].view(-1, args.retrieval_topk).detach().cpu().numpy()
-                # logits = outputs["logits"].view(-1, args.retrieval_topk).detach().cpu().numpy()
-                pred = np.argmax(pred, axis=-1)
-                labels = batch["labels"].view(-1, args.retrieval_topk).detach().cpu().numpy()
-                for idx, i in enumerate(pred):
-                    if labels[idx][i] == 1:
-                        num_correct += 1
-                    num_all += 1
-        acc = num_correct / num_all
-        writer.add_scalar("dev/acc", acc, epoch)
-        torch.save(
-            model.state_dict(),
-            f"{os.path.join(args.save_dir, os.path.basename(args.model_name_or_path))}_epoch_{epoch}_acc_{acc:.4f}.bin"
-        )
+        if args.do_eval:
+            # Evaluation
+            model.eval()
+            num_all, num_correct = 0, 0
+            for step, batch in tqdm(enumerate(dev_dataloader), total=len(dev_dataloader)):
+                batch = {k: v.to(device) for k, v in batch.items()}
+                with torch.no_grad():
+                    outputs = model(**batch)
+                    loss = outputs["loss"]
+                    writer.add_scalar("dev/loss", loss.item(), epoch * len(dev_dataloader) + step)
+                    logits = outputs["logits"].detach().clone()
+                    pred = F.softmax(logits, dim=-1)[:, 1].view(-1, args.retrieval_topk).detach().cpu().numpy()
+                    pred = np.argmax(pred, axis=-1)
+                    labels = batch["labels"].view(-1, args.retrieval_topk).detach().cpu().numpy()
+                    for idx, i in enumerate(pred):
+                        if labels[idx][i] == 1:
+                            num_correct += 1
+                        num_all += 1
+            acc = num_correct / num_all
+            writer.add_scalar("dev/acc", acc, epoch)
+            torch.save(
+                model.state_dict(),
+                f"{os.path.join(args.save_dir, os.path.basename(args.model_name_or_path))}_epoch_{epoch}_acc_{acc:.4f}.bin"
+            )
+        else:
+            torch.save(
+                model.state_dict(),
+                f"{os.path.join(args.save_dir, os.path.basename(args.model_name_or_path))}_lang_{args.lang}_epoch_{epoch}.bin"
+            )
 
 
 if __name__ == '__main__':
@@ -248,5 +256,6 @@ if __name__ == '__main__':
                         type=str,
                         default="/media/f/lichunyu/BioNNE-L/data/checkpoints",
                         help="Directory to save checkpoints")
+    parser.add_argument("--do_eval", action="store_true", help="Whether to evaluate the model")
     args = parser.parse_args()
     main(args)
