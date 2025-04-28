@@ -6,6 +6,7 @@
 import os
 
 import pandas as pd
+from datasets import load_dataset
 from tqdm import tqdm
 
 
@@ -83,8 +84,11 @@ def get_span(start_idx, end_idx, num_prefix_words, num_suffix_words, doc_id, dat
     return span
 
 
-retrieval_batch_size = 128
-df = pd.read_pickle("/media/f/lichunyu/BioNNE-L/data/extra/pickle/en/extra_en_data.pkl")
+retrieval_batch_size = 600
+df_en = load_dataset("andorei/BioNNE-L", "English", split="test").to_pandas()
+df_ru = load_dataset("andorei/BioNNE-L", "Russian", split="test").to_pandas()
+df = pd.concat([df_en, df_ru], axis=0)
+# df = pd.read_pickle("/media/f/lichunyu/BioNNE-L/data/extra/pickle/ru/extra_ru_data.pkl")
 num_error = 0
 for chem_type in ("DISO", "CHEM", "ANATOMY"):
     sub_df = df[df["entity_type"] == chem_type]
@@ -101,8 +105,9 @@ for chem_type in ("DISO", "CHEM", "ANATOMY"):
         for j in range(len(batch_doc_ids)):
             start_idx, end_idx = batch_spans[j].split("-")[0], batch_spans[j].split("-")[-1]
             try:
-                span_include_mention = get_span(start_idx, end_idx, 50, 50, batch_doc_ids[j], "train", batch_texts[j],
-                                                "/media/f/lichunyu/BioNNE-L/data/extra/texts")
+                span_include_mention = get_span(
+                    start_idx, end_idx, 50, 50, batch_doc_ids[j], "test", batch_texts[j],
+                    "/media/f/lichunyu/BioNNE-L/data/NEREL-BIO/BioNNE-L_Shared_Task/data/texts")
             except Exception as e:
                 num_error += 1
                 span_include_mention = batch_texts[j]

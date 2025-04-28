@@ -251,7 +251,7 @@ def main(args):
     train_data = defaultdict(list)
     num_find_span4mention_error = 0
 
-    for chem_type in ("DISO", "CHEM", "ANATOMY"):
+    for chem_type in ("ANATOMY", "DISO", "CHEM"):
         sub_en_data_train = en_data_train[en_data_train["entity_type"] == chem_type]
         sub_vocab = vocab[vocab["semantic_type"] == chem_type]
 

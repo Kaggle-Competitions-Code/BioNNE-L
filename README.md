@@ -70,10 +70,11 @@
 
 
 ### Russian
-|                    Model                     | CV(Acc) | LB(Acc) | LB-Post(Acc) | Base on(Acc@1/Acc@5/Acc@10) |  Approach   | P.S.  |
-| :------------------------------------------: | :-----: | :-----: | :----------: | :-------------------------: | :---------: | :---: |
-| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large |    \    | 0.5436  |    0.5366    |    0.5103/0.5613/0.5763     | Step1-only  |   \   |
-| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large | 0.5069  |    \    |      \       |    0.5103/0.5613/0.5763     | data: train |   \   |
+|                    Model                     | CV(Acc) | LB(Acc) | LB-Post(Acc) | Base on(Acc@1/Acc@5/Acc@10) |     Approach      | P.S.  |
+| :------------------------------------------: | :-----: | :-----: | :----------: | :-------------------------: | :---------------: | :---: |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large |    \    | 0.5436  |    0.5366    |    0.5103/0.5613/0.5763     |    Step1-only     |   \   |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large | 0.5338  | 0.5687  |    0.5631    |    0.5103/0.5613/0.5763     |    data: train    |   \   |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large |    \    |    \    |      \       |    0.5103/0.5613/0.5763     | data: train + mcn |   \   |
 
 
 

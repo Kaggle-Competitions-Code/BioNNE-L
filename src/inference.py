@@ -37,7 +37,7 @@ class ELModel(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.classifier = nn.Linear(self.bert.config.hidden_size, 2)
 
-    def forward(self, input_ids, attention_mask, token_type_ids, labels=None, type_labels=None):
+    def forward(self, input_ids, attention_mask, token_type_ids=None, labels=None, type_labels=None):
         outputs = self.bert(input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids)
         pooled_output = outputs[1]
         pooled_output = self.dropout(pooled_output)
@@ -113,15 +113,24 @@ class ELCollator:
             doc_id.append(inputs[i]["doc_id"])
         input_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in input_ids], batch_first=True)
         attention_mask = pad_sequence([torch.tensor(i, dtype=torch.int) for i in attention_mask], batch_first=True)
-        token_type_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in token_type_ids], batch_first=True)
-        return {
-            "input_ids": input_ids,
-            "attention_mask": attention_mask,
-            "token_type_ids": token_type_ids,
-            "candidate_CUI": candidate_CUI,
-            "spans": spans,
-            "doc_id": doc_id,
-        }
+        if inputs[0]["token_type_ids"]:
+            token_type_ids = pad_sequence([torch.tensor(i, dtype=torch.int) for i in token_type_ids], batch_first=True)
+            return {
+                "input_ids": input_ids,
+                "attention_mask": attention_mask,
+                "token_type_ids": token_type_ids,
+                "candidate_CUI": candidate_CUI,
+                "spans": spans,
+                "doc_id": doc_id,
+            }
+        else:
+            return {
+                "input_ids": input_ids,
+                "attention_mask": attention_mask,
+                "candidate_CUI": candidate_CUI,
+                "spans": spans,
+                "doc_id": doc_id,
+            }
 
 
 def set_seed(seed):
