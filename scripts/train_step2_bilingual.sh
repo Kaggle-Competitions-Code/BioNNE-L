@@ -9,4 +9,5 @@ CUDA_VISIBLE_DEVICES=0 python step2_train.py \
 --learning_rate 1e-5 \
 --num_train_epochs 5 \
 --model_name_or_path /media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-special \
---tokenizer_name_or_path /media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-special
+--tokenizer_name_or_path /media/f/lichunyu/models/BiomedNLP-BiomedBERT-base-uncased-abstract-special \
+--do_eval

@@ -45,20 +45,21 @@
 
 ### English
 
-|                        Model                        | CV(Acc) | LB(Acc) | LB-Post(Acc) | Base on(Acc@1/Acc@5/Acc@10) |     Approach     |                                       P.S.                                        |
-| :-------------------------------------------------: | :-----: | :-----: | :----------: | :-------------------------: | :--------------: | :-------------------------------------------------------------------------------: |
-|                   gebert_eng_gat                    |    \    |    \    |      \       |              \              |    Multilabel    |                                         \                                         |
-|                  BioLinkBERT-base                   | 0.5441  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                         \                                         |
-|                  BioLinkBERT-large                  | 0.5269  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                         \                                         |
-|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.5441  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                         \                                         |
-|                  bart-base-uncased                  | 0.5253  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                         \                                         |
-| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext |    \    |    \    |      \       |              \              |    regression    |                                         \                                         |
-| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext | 0.6536  |    \    |      \       |    0.6115/0.7698/0.8043     | 2-Classification |         data: MedMentions + train, retrieval_topk: 5, learning_rate: 7e-6         |
-|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.6604  |         |      \       |    0.6115/0.7698/0.8043     | 2-Classification |         data: MedMentions + train, retrieval_topk: 5, learning_rate: 7e-6         |
-| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext | 0.6532  |    \    |      \       |    0.6115/0.7698/0.8043     | 2-Classification |        data: MedMentions + train, retrieval_topk: 10, learning_rate: 7e-6         |
-|         BiomedNLP-KRISSBERT-PubMed-UMLS-EL          | 0.6576  |    \    |      \       |    0.6115/0.7698/0.8043     | 2-Classification |         data: MedMentions + train, retrieval_topk: 5, learning_rate: 1e-5         |
-|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.6632  | 0.6906  |    0.6197    |    0.6115/0.7698/0.8043     | 2-Classification |         data: MedMentions + train, retrieval_topk: 5, learning_rate: 1e-5         |
-|     BiomedNLP-BiomedBERT-base-uncased-abstract      |    \    |    \    |    0.6273    |    0.6115/0.7698/0.8043     | 2-Classification | data: MedMentions + train + dev, retrieval_topk: 5, learning_rate: 1e-5, epoch: 2 |
+|                        Model                        | CV(Acc) | LB(Acc) | LB-Post(Acc) | Base on(Acc@1/Acc@5/Acc@10) |     Approach     |                                                P.S.                                                 |
+| :-------------------------------------------------: | :-----: | :-----: | :----------: | :-------------------------: | :--------------: | :-------------------------------------------------------------------------------------------------: |
+|                   gebert_eng_gat                    |    \    |    \    |      \       |              \              |    Multilabel    |                                                  \                                                  |
+|                  BioLinkBERT-base                   | 0.5441  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                                  \                                                  |
+|                  BioLinkBERT-large                  | 0.5269  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                                  \                                                  |
+|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.5441  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                                  \                                                  |
+|                  bart-base-uncased                  | 0.5253  |    \    |      \       |    0.5285/0.7658/0.8011     |    Multilabel    |                                                  \                                                  |
+| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext |    \    |    \    |      \       |              \              |    regression    |                                                  \                                                  |
+| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext | 0.6536  |    \    |      \       |    0.6115/0.7698/0.8043     | 2-Classification |                  data: MedMentions + train, retrieval_topk: 5, learning_rate: 7e-6                  |
+|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.6604  |         |      \       |    0.6115/0.7698/0.8043     | 2-Classification |                  data: MedMentions + train, retrieval_topk: 5, learning_rate: 7e-6                  |
+| BiomedNLP-BiomedBERT-base-uncased-abstract-fulltext | 0.6532  |    \    |      \       |    0.6115/0.7698/0.8043     | 2-Classification |                 data: MedMentions + train, retrieval_topk: 10, learning_rate: 7e-6                  |
+|         BiomedNLP-KRISSBERT-PubMed-UMLS-EL          | 0.6576  |    \    |      \       |    0.6115/0.7698/0.8043     | 2-Classification |                  data: MedMentions + train, retrieval_topk: 5, learning_rate: 1e-5                  |
+|     BiomedNLP-BiomedBERT-base-uncased-abstract      | 0.6632  | 0.6906  |    0.6197    |    0.6115/0.7698/0.8043     | 2-Classification |                  data: MedMentions + train, retrieval_topk: 5, learning_rate: 1e-5                  |
+|     BiomedNLP-BiomedBERT-base-uncased-abstract      |    \    |    \    |    0.6273    |    0.6115/0.7698/0.8043     | 2-Classification |          data: MedMentions + train + dev, retrieval_topk: 5, learning_rate: 1e-5, epoch: 2          |
+|     BiomedNLP-BiomedBERT-base-uncased-abstract      |    \    |    \    |    0.6229    |    0.6115/0.7698/0.8043     | 2-Classification | data: MedMentions + train + dev, retrieval_topk: 5, learning_rate: 1e-5, epoch: 2, context-relevant |
 
 
 ### Extra Dataset
@@ -70,11 +71,13 @@
 
 
 ### Russian
-|                    Model                     | CV(Acc) | LB(Acc) | LB-Post(Acc) | Base on(Acc@1/Acc@5/Acc@10) |     Approach      | P.S.  |
-| :------------------------------------------: | :-----: | :-----: | :----------: | :-------------------------: | :---------------: | :---: |
-| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large |    \    | 0.5436  |    0.5366    |    0.5103/0.5613/0.5763     |    Step1-only     |   \   |
-| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large | 0.5338  | 0.5687  |    0.5631    |    0.5103/0.5613/0.5763     |    data: train    |   \   |
-| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large |    \    |    \    |      \       |    0.5103/0.5613/0.5763     | data: train + mcn |   \   |
+|                    Model                     | CV(Acc) | LB(Acc) | LB-Post(Acc) | Base on(Acc@1/Acc@5/Acc@10) |     Approach     |                     P.S.                      |
+| :------------------------------------------: | :-----: | :-----: | :----------: | :-------------------------: | :--------------: | :-------------------------------------------: |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large |    \    | 0.5436  |    0.5366    |    0.5103/0.5613/0.5763     | 2-Classification |                  Step1-only                   |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large | 0.5338  | 0.5687  |    0.5631    |    0.5103/0.5613/0.5763     | 2-Classification |                  data: train                  |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large | 0.5467  | 0.5824  |    0.5725    |    0.5103/0.5613/0.5763     | 2-Classification |          data: train + mcn, epoch: 5          |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large | 0.5467  | 0.5824  |    0.5704    |    0.5103/0.5613/0.5763     | 2-Classification | data: train + mcn, epoch: 5, context-relevant |
+| SapBERT-UMLS-2020AB-all-lang-from-XLMR-large |    \    |    \    |      \       |    0.5103/0.5613/0.5763     | 2-Classification |            data: train + mcn + dev            |
 
 
 

@@ -2,7 +2,7 @@
 
 
 cd ../src
-CUDA_VISIBLE_DEVICES=1 python preprocess_data.py \
+CUDA_VISIBLE_DEVICES=0 python preprocess_data.py \
 --num_prefix_words 50 \
 --num_suffix_words 50 \
 --dataset_split test \
