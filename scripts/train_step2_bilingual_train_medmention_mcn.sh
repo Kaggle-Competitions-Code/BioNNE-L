@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd ../src
-CUDA_VISIBLE_DEVICES=0 python step2_train.py \
+CUDA_VISIBLE_DEVICES=1 python step2_train.py \
 --train_data_path /media/f/lichunyu/BioNNE-L/data/eeyore/bilingual/train_medmention_mcn_data_sap_50.pkl \
 --dev_data_path /media/f/lichunyu/BioNNE-L/data/eeyore/bilingual/dev_data_sap_50.pkl \
 --retrieval_topk 5 \

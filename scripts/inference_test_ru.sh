@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cd ../src
-CUDA_VISIBLE_DEVICES=0 python inference.py \
---checkpoints_path /media/f/lichunyu/BioNNE-L/data/checkpoints/SapBERT-UMLS-2020AB-all-lang-from-XLMR-large-special_epoch_1_acc_0.5531.bin \
+CUDA_VISIBLE_DEVICES=1 python inference.py \
+--checkpoints_path /media/f/lichunyu/BioNNE-L/data/checkpoints/bilingual/SapBERT-UMLS-2020AB-all-lang-from-XLMR-large-special_epoch_0_acc_0.6576.bin \
 --model_name_or_path /media/f/lichunyu/models/SapBERT-UMLS-2020AB-all-lang-from-XLMR-large-special \
 --tokenizer_name_or_path /media/f/lichunyu/models/SapBERT-UMLS-2020AB-all-lang-from-XLMR-large-special \
 --retrieval_data_path /media/f/lichunyu/BioNNE-L/data/eeyore/ru/test_data_sap_50.pkl \
